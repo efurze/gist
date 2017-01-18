@@ -1,8 +1,9 @@
 
 var parseCatFile = function(data, type) {
-	var ret = [];
+	var ret;
 	if (data) {
 		if (type === 'tree') {
+			ret = [];
 			data.split('\n').forEach(function(line) {
 				if (line && line.length) {
 					var parts = line.split(/\s/);
@@ -14,10 +15,26 @@ var parseCatFile = function(data, type) {
 					ret.push(info);
 				}
 			});
-		} else if (type.localeCompare('commit') == 0) {
-
-		} else if (type.localeCompare('blob') == 0) {
-
+		} else if (type === 'commit') {
+			ret = {};
+			var parents = [];
+			data.split('\n').forEach(function(line) {
+				if (line && line.length) {
+					var parts = line.split(/\s/);
+					if (parts[0].trim() === 'tree') {
+						ret['tree'] = parts[1];
+					} else if (parts[0].trim() === 'author') {
+						ret['author'] = parts[1];
+					} else if (parts[0].trim() === 'committer') {
+						ret['committer'] = parts[1];
+					} else if (parts[0].trim() === 'parent') {
+						parents.push(parts[1]);
+					}
+				}
+			});
+			ret['parents'] = parents;
+		} else if (type === 'blob') {
+			ret = data.split('\n');
 		}
 	}
 	return ret;
@@ -40,46 +57,8 @@ var Git = function(path) {
 			});
 	};
 
-	git.buildTreeAsync = function(object) {
-		if (!object || !object.type || object.type !== 'tree' || !object.id)
-			return;
+	
 
-		var innerSync = function(obj) {
-			var resolve, reject;
-			var promise = new Promise(function(res, rej){
-				resolve = res;
-				reject = rej;
-			});
-
-			var tree = {
-				'name': obj.name,
-				'children': []
-			};
-			git.catFileAsync(obj.id).then(function(objs) {
-				var subtrees = [];
-				objs.forEach(function(obj) {
-					if (obj.type === 'tree') {
-						subtrees.push(obj);
-					} else {
-						tree.children.push(obj);
-					}
-				});
-
-				Promise.all(subtrees.map(function(st) {
-					return innerSync(st)
-						.then(function (result) {
-							tree.children.push(result);
-						});
-				})).then(function() {
-					resolve(tree);
-				});
-			}).catch(function(err) {
-				reject(err);
-			});
-			return promise;
-		};
-		return innerSync(object);
-	};
 
 	return git;
 };
