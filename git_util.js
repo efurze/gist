@@ -4,6 +4,35 @@ var Util = function (git) {
 	this.git = git;
 };
 
+Util.prototype._doRevWalk = function(commit) {
+	if (!commit) {
+		return [];
+	}
+	var self = this;
+	var msgs = [];
+	msgs.push(commit);
+	if (commit.parents.length) {
+		return self.git.catFileAsync(commit.parents[0])
+			.then(function(c) {
+				return self._doRevWalk.apply(self, [c]);
+			}).then(function(m){
+				return m.concat(msgs);
+			});
+	} else {
+		return msgs;
+	}
+};
+
+Util.prototype.revWalk = function (branch_name) { 
+	var self = this;
+	if (typeof(branch_name) === 'string') {
+		return this.git.catFileAsync(branch_name)
+			.then(function(commit) {
+				return self._doRevWalk.apply(self, [commit]);
+			});
+	}
+};
+
 Util.prototype.enumerateFiles = function(tree, path) {
 	var self = this;
 	var files = [];

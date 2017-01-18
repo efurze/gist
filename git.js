@@ -18,21 +18,33 @@ var parseCatFile = function(data, type) {
 		} else if (type === 'commit') {
 			ret = {};
 			var parents = [];
+			var found_empty_line = false;
+			var comment = "";
 			data.split('\n').forEach(function(line) {
-				if (line && line.length) {
-					var parts = line.split(/\s/);
-					if (parts[0].trim() === 'tree') {
-						ret['tree'] = parts[1];
-					} else if (parts[0].trim() === 'author') {
-						ret['author'] = parts[1];
-					} else if (parts[0].trim() === 'committer') {
-						ret['committer'] = parts[1];
-					} else if (parts[0].trim() === 'parent') {
-						parents.push(parts[1]);
+				if (found_empty_line) {
+					if (comment.length) {
+						comment += '\n';
 					}
+					comment += line;
+				} else {
+					if (line.length) {
+						var parts = line.split(/\s/);
+						if (parts[0].trim() === 'tree') {
+							ret['tree'] = parts[1];
+						} else if (parts[0].trim() === 'author') {
+							ret['author'] = parts[1];
+						} else if (parts[0].trim() === 'committer') {
+							ret['committer'] = parts[1];
+						} else if (parts[0].trim() === 'parent') {
+							parents.push(parts[1]);
+						}
+					} else if (!found_empty_line) {
+						found_empty_line = true;
+					} 
 				}
 			});
 			ret['parents'] = parents;
+			ret['commit_msg'] = comment;
 		} else if (type === 'blob') {
 			ret = data.split('\n');
 		}
