@@ -12,7 +12,7 @@ Util.prototype._doRevWalk = function(commit) {
 	var msgs = [];
 	msgs.push(commit);
 	if (commit.parents.length) {
-		return self.git.catFileAsync(commit.parents[0])
+		return self.git.catFile(commit.parents[0])
 			.then(function(c) {
 				return self._doRevWalk.apply(self, [c]);
 			}).then(function(m){
@@ -26,7 +26,7 @@ Util.prototype._doRevWalk = function(commit) {
 Util.prototype.revWalk = function (branch_name) { 
 	var self = this;
 	if (typeof(branch_name) === 'string') {
-		return this.git.catFileAsync(branch_name)
+		return this.git.catFile(branch_name)
 			.then(function(commit) {
 				return self._doRevWalk.apply(self, [commit]);
 			});
@@ -54,7 +54,7 @@ Util.prototype.enumerateFiles = function(tree, path) {
 	return files;
 };
 
-Util.prototype.buildTreeAsync = function(object) {
+Util.prototype.buildTree = function(object) {
 	if (!object || !object.type || object.type !== 'tree' || !object.id)
 		return;
 
@@ -69,7 +69,7 @@ Util.prototype.buildTreeAsync = function(object) {
 
 		var tree = new Node(obj.name);
 
-		self.git.catFileAsync(obj.id).then(function(objs) {
+		self.git.catFile(obj.id).then(function(objs) {
 			var subtrees = [];
 			objs.forEach(function(obj) {
 				if (obj.type === 'tree') {

@@ -1,3 +1,5 @@
+var Promise = require('bluebird');
+
 
 var parseCatFile = function(data, type) {
 	var ret;
@@ -53,29 +55,22 @@ var parseCatFile = function(data, type) {
 }
 
 var Git = function(path) {
-	var Promise = require('bluebird');
 	var gitSync = require('simple-git')(path);
-	var git = Promise.promisifyAll(gitSync);
-
-	git.catFileAsyncOld = git.catFileAsync;
-	git.catFileAsync = function(id) {
-		var type;
-		return git.catFileAsyncOld(['-t', id])
-			.then(function(obj_type) {
-				type = obj_type.trim();
-				return git.catFileAsyncOld(['-p', id]);
-			}).then(function(data) {
-				return parseCatFile(data, type);
-			});
-	};
-
-	
-
-
-	return git;
+	this._git = Promise.promisifyAll(gitSync);
 };
 
 
+Git.prototype.catFile = function(id) {
+	var self = this;
+	var type;
+	return self._git.catFileAsync(['-t', id])
+		.then(function(obj_type) {
+			type = obj_type.trim();
+			return self._git.catFileAsync(['-p', id]);
+		}).then(function(data) {
+			return parseCatFile(data, type);
+		});
+};
 
 
 module.exports = Git;
