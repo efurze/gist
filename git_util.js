@@ -1,9 +1,20 @@
 var Promise = require('bluebird');
+var Types = require('./types.js');
 
 var Util = function (git) {
 	this.git = git;
 };
 
+/*
+	returns [
+		 { 	tree: 'f71cb44149ff818bed7e835460bdd284dcdf0641',
+		    author: 'Prasanna',
+		    committer: 'Prasanna',
+		    parents: [],
+		    commit_msg: 'Initial commit' 
+		 },
+	]
+*/
 Util.prototype._doRevWalk = function(commit) {
 	if (!commit) {
 		return [];
@@ -54,8 +65,24 @@ Util.prototype.enumerateFiles = function(tree, path) {
 	return files;
 };
 
+/* returns tree node: 
+	{
+		name: <str>,
+		children: [{
+			name:,
+			id: SHA-1
+			type: tree | blob
+		}]
+	}
+*/
 Util.prototype.buildTree = function(object) {
-	if (!object || !object.type || object.type !== 'tree' || !object.id)
+	if (typeof(object) == 'string') {
+		object = {
+			id: object,
+			name: "",
+			type: "tree"
+		};
+	} else if (!object || !object.type || object.type !== 'tree' || !object.id)
 		return;
 
 	var self = this;
@@ -96,16 +123,6 @@ Util.prototype.buildTree = function(object) {
 };
 
 
-var Node = function(name) {
-	this.name = name;
-	this.children = null;
-};
 
-Node.prototype.addChild = function(child) {
-	if (!this.children) {
-		this.children = [];
-	}
-	this.children.push(child);
-};
 
 module.exports = Util;

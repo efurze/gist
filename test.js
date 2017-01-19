@@ -2,8 +2,12 @@ var git = require('./git.js');
 var Git = new git('/Users/efurze/repos/SearchBuzz-Grid');
 var util = require('./git_util.js');
 var Util = new util(Git);
+var repo = require('./repo.js');
+var Repo = new repo('/Users/efurze/repos/SearchBuzz-Grid');
 
-
+Repo.init().then(function(file_lengths) {
+	console.log(file_lengths);
+});
 
 /*
 Git.catFile('master').then(function(data){
@@ -18,13 +22,9 @@ Util.revWalk('master').then(function(msgs) {
 */
 
 /*
-Util.buildTree({
-	id: 'b7744f2b162795f093b7304ac259062aba24cb75',
-	name: 'root',
-	type: 'tree'
-}).then(function(data) {
-	//console.log(JSON.stringify(data));
-	console.log(Util.enumerateFiles(data, ""));
+Util.buildTree('b7744f2b162795f093b7304ac259062aba24cb75').then(function(data) {
+	console.log(JSON.stringify(data));
+	//console.log(Util.enumerateFiles(data, ""));
 });
 */
 
