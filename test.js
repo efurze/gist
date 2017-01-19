@@ -5,7 +5,7 @@ var Util = new util(Git);
 var repo = require('./repo.js');
 var Repo = new repo('/Users/efurze/repos/SearchBuzz-Grid');
 
-Repo.init().then(function(file_lengths) {
+Repo.crawlBranch('master').then(function(file_lengths) {
 	console.log(file_lengths);
 });
 

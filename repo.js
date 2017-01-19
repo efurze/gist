@@ -10,13 +10,13 @@ var Repo = function(path) {
 	this._util = new Util(this._git);
 };
 
-Repo.prototype.init = function() {
+Repo.prototype.crawlBranch = function(branch_name) { // eg 'master'
 	var self = this;
-	return self._util.revWalk('master')
+	return self._util.revWalk(branch_name)
 		.then(function(history) { // array of commits
 			
 			return Promise.mapSeries(history, function(rev) {
-				return self._util.buildTree(history[1].tree)
+				return self._util.buildTree(rev.tree)
 					.then(getAllFileIds)
 					.then(function(files){
 						return Promise.each(Object.keys(files), function(filepath) {
