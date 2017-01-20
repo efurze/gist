@@ -30,6 +30,7 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 		.then(function(history) { // array of commits
 
 			var current_rev = history.pop();
+			var initial_commit = current_rev.id;
 
 			return self._util.buildTree(current_rev.tree)
 				.then(getAllFileIds)
@@ -49,10 +50,16 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 							.then(function(diff) {
 								current_rev = rev;
 								files = self._updateFileSizes(files, diff);
-								return files;
+								return {
+									'commit': rev.id,
+									'tree': files
+								}
 							});
 					}).then(function(file_history) {
-						file_history.push(initial_files);
+						file_history.push({
+							'commit': initial_commit,
+							'tree': initial_files
+						});
 						return file_history;
 					});
 				});

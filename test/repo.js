@@ -24,25 +24,25 @@ describe('fileSizeHistory', function() {
     it('should generate file size history for 8th commit in this repo', function(done) {
         repo.fileSizeHistory('87de0509018493e8b76ea0853177593942e7e9d4').then(function(result) {
             history = result;
-            //console.log(history);
+            console.log(history);
             expect(result).to.have.lengthOf(8);
         	done();
         });
     });
     it('should have accurate data for first commit', function() {
         Object.keys(first_commit).forEach(function(file) {
-            expect(history[7][file]).to.equal(first_commit[file]);
+            expect(history[7].tree[file]).to.equal(first_commit[file]);
         });
-        Object.keys(history[7]).forEach(function(file) {
-            expect(history[7][file]).to.equal(first_commit[file]);
+        Object.keys(history[7].tree).forEach(function(file) {
+            expect(history[7].tree[file]).to.equal(first_commit[file]);
         });
     });
     it('should have accurate data for eighth commit', function() {
         Object.keys(first_commit).forEach(function(file) {
-            expect(history[0][file]).to.equal(eighth_commit[file]);
+            expect(history[0].tree[file]).to.equal(eighth_commit[file]);
         });
-        Object.keys(history[0]).forEach(function(file) {
-            expect(history[0][file]).to.equal(eighth_commit[file]);
+        Object.keys(history[0].tree).forEach(function(file) {
+            expect(history[0].tree[file]).to.equal(eighth_commit[file]);
         });
     });
 });
