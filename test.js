@@ -1,11 +1,11 @@
 var git = require('./git.js');
-var Git = new git('/Users/efurze/repos/SearchBuzz-Grid');
+var Git = new git('/Users/efurze/repos/gist');
 var util = require('./git_util.js');
 var Util = new util(Git);
 var repo = require('./repo.js');
 var Repo = new repo('/Users/efurze/repos/SearchBuzz-Grid');
 
-Repo.crawlBranch('master').then(function(file_lengths) {
+Repo.fileSizeHistory('master').then(function(file_lengths) {
 	console.log(file_lengths);
 });
 

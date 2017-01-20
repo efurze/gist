@@ -10,28 +10,79 @@ var Repo = function(path) {
 	this._util = new Util(this._git);
 };
 
-Repo.prototype.crawlBranch = function(branch_name) { // eg 'master'
+/*
+	returns promise that resolves to:
+	[
+		{
+			"foo.txt": 34,
+			"bar.txt": 49,
+			"foo/bar.txt": 349
+		}
+	]
+
+	Each array element is a revision, element 0 is first rev.
+	Object contains full path name of every file in tree with corresponding
+	file length (in lines)
+*/
+Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 	var self = this;
 	return self._util.revWalk(branch_name)
 		.then(function(history) { // array of commits
-			
-			return Promise.mapSeries(history, function(rev) {
-				return self._util.buildTree(rev.tree)
-					.then(getAllFileIds)
-					.then(function(files){
-						return Promise.each(Object.keys(files), function(filepath) {
-							return self._git.catFile(files[filepath])
-								.then(function(filedata) {
-									files[filepath] = filedata.length;
-								});
-						}).then(function() {
-							return files;
-						});
+
+			var current_rev = history.shift();
+
+			return self._util.buildTree(current_rev.tree)
+				.then(getAllFileIds)
+				.then(function(files) { // {filepath => sha1}
+					return Promise.each(Object.keys(files), function(filepath) {
+						return self._git.catFile(files[filepath])
+							.then(function(filedata) {
+								files[filepath] = filedata.length;
+							});
+					}).then(function() {
+						return files;
 					});
-			});
+				}).then(function(files) { // {filepath => filelength}
+					var initial_files = files; // for first rev
+					return Promise.mapSeries(history, function(rev) {
+						return self._git.diff(current_rev.tree, rev.tree)
+							.then(function(diff) {
+								current_rev = rev;
+								self._updateFileSizes(files, diff);
+								return files;
+							});
+					}).then(function(file_history) {
+						file_history.unshift(initial_files);
+						return file_history;
+					});
+				});
 		});
 };
 
+
+/*
+	@files = {'foo.txt': 423, 'bar/foo.txt': 43}
+*/
+Repo.prototype._updateFileSizes = function(files, diff) {
+	diff.forEach(function(filediff) {
+		var filename = filediff.from;
+		var delta = parseInt(filediff.additions) - parseInt(filediff.deletions);
+		if (!filename || filename === "/dev/null") {
+			// file created
+			filename = filediff.to;
+			files[filename] = delta;
+		} else if (filediff.to === "/dev/null") {
+			// file deleted
+			files[filename] = 0;
+		} else if (filediff.from !== filediff.to) {
+			// file renamed
+			files[filediff.from] = 0;
+			files[filediff.to] = delta;
+		} else {
+			files[filename] = files[filename] + delta;
+		}
+	});
+};
 
 //=========================================
 

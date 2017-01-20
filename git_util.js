@@ -14,6 +14,8 @@ var Util = function (git) {
 		    commit_msg: 'Initial commit' 
 		 },
 	]
+
+	Oldest revision first
 */
 Util.prototype._doRevWalk = function(commit) {
 	if (!commit) {
