@@ -38,12 +38,10 @@ Util.prototype._doRevWalk = function(commit) {
 
 Util.prototype.revWalk = function (branch_name) { 
 	var self = this;
-	if (typeof(branch_name) === 'string') {
-		return this.git.catFile(branch_name)
-			.then(function(commit) {
-				return self._doRevWalk.apply(self, [commit]);
-			});
-	}
+	return this.git.catFile(branch_name)
+		.then(function(commit) {
+			return self._doRevWalk.apply(self, [commit]);
+		});
 };
 
 Util.prototype.enumerateFiles = function(tree, path) {
@@ -100,13 +98,15 @@ Util.prototype.buildTree = function(object) {
 
 		self.git.catFile(obj.id).then(function(objs) {
 			var subtrees = [];
-			objs.forEach(function(obj) {
-				if (obj.type === 'tree') {
-					subtrees.push(obj);
-				} else {
-					tree.addChild(obj);
-				}
-			});
+			if (objs && objs.children) {
+				objs.children.forEach(function(obj) {
+					if (obj.type === 'tree') {
+						subtrees.push(obj);
+					} else {
+						tree.addChild(obj);
+					}
+				});
+			}
 
 			Promise.all(subtrees.map(function(st) {
 				return innerSync(st)

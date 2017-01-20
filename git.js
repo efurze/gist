@@ -2,11 +2,13 @@ var Promise = require('bluebird');
 var parse = require('parse-diff');
 
 
-var parseCatFile = function(data, type) {
-	var ret;
+var parseCatFile = function(data, type, sha) {
+	var ret = {
+		'id': sha
+	};
 	if (data) {
 		if (type === 'tree') {
-			ret = [];
+			ret['children'] = [];
 			data.split('\n').forEach(function(line) {
 				if (line && line.length) {
 					var parts = line.split(/\s/);
@@ -15,11 +17,10 @@ var parseCatFile = function(data, type) {
 						'id': parts[2],
 						'type': parts[1]
 					};
-					ret.push(info);
+					ret['children'].push(info);
 				}
 			});
 		} else if (type === 'commit') {
-			ret = {};
 			var parents = [];
 			var found_empty_line = false;
 			var comment = "";
@@ -49,6 +50,7 @@ var parseCatFile = function(data, type) {
 			ret['parents'] = parents;
 			ret['commit_msg'] = comment;
 		} else if (type === 'blob') {
+			// TODO
 			ret = data.split('\n');
 		}
 	}
@@ -64,12 +66,19 @@ var Git = function(path) {
 Git.prototype.catFile = function(id) {
 	var self = this;
 	var type;
-	return self._git.catFileAsync(['-t', id])
-		.then(function(obj_type) {
-			type = obj_type.trim();
-			return self._git.catFileAsync(['-p', id]);
-		}).then(function(data) {
-			return parseCatFile(data, type);
+	return self._git.revparseAsync([id])
+		.then(function(sha) {
+			if (!sha) {
+				sha = id;
+			}
+			sha = sha.trim();
+			return self._git.catFileAsync(['-t', sha])
+				.then(function(obj_type) {
+					type = obj_type.trim();
+					return self._git.catFileAsync(['-p', sha]);
+				}).then(function(data) {
+					return parseCatFile(data, type, sha);
+				});
 		});
 };
 
@@ -81,5 +90,10 @@ Git.prototype.diff = function(sha1, sha2) {
 		});
 };
 
+// @ref: SHA or branch/tag name ('master', 'HEAD', etc)
+Git.prototype.revList = function(ref) {
+	var self = this;
+	return self.catFile(ref);
+}
 
 module.exports = Git;
