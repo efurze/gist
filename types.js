@@ -12,3 +12,6 @@ Node.prototype.addChild = function(child) {
 	this.children.push(child);
 };
 
+Clone = function(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}

@@ -43,12 +43,12 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 						return files;
 					});
 				}).then(function(files) { // {filepath => filelength}
-					var initial_files = files; // for first rev
+					var initial_files = Clone(files); // for first rev
 					return Promise.mapSeries(history, function(rev) {
 						return self._git.diff(current_rev.tree, rev.tree)
 							.then(function(diff) {
 								current_rev = rev;
-								self._updateFileSizes(files, diff);
+								files = self._updateFileSizes(files, diff);
 								return files;
 							});
 					}).then(function(file_history) {
@@ -64,6 +64,7 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 	@files = {'foo.txt': 423, 'bar/foo.txt': 43}
 */
 Repo.prototype._updateFileSizes = function(files, diff) {
+	files = Clone(files);
 	diff.forEach(function(filediff) {
 		var filename = filediff.from;
 		var delta = parseInt(filediff.additions) - parseInt(filediff.deletions);
@@ -82,6 +83,7 @@ Repo.prototype._updateFileSizes = function(files, diff) {
 			files[filename] = files[filename] + delta;
 		}
 	});
+	return files;
 };
 
 //=========================================
