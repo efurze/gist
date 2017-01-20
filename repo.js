@@ -20,7 +20,7 @@ var Repo = function(path) {
 		}
 	]
 
-	Each array element is a revision, element 0 is first rev.
+	Each array element is a revision, element 0 is latest rev.
 	Object contains full path name of every file in tree with corresponding
 	file length (in lines)
 */
@@ -29,7 +29,7 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 	return self._util.revWalk(branch_name)
 		.then(function(history) { // array of commits
 
-			var current_rev = history.shift();
+			var current_rev = history.pop();
 
 			return self._util.buildTree(current_rev.tree)
 				.then(getAllFileIds)
@@ -52,7 +52,7 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 								return files;
 							});
 					}).then(function(file_history) {
-						file_history.unshift(initial_files);
+						file_history.push(initial_files);
 						return file_history;
 					});
 				});
