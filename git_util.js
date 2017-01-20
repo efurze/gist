@@ -5,6 +5,7 @@ var Util = function (git) {
 	this.git = git;
 };
 
+
 /*
 	returns [
 		 { 	tree: 'f71cb44149ff818bed7e835460bdd284dcdf0641',
@@ -15,32 +16,15 @@ var Util = function (git) {
 		 },
 	]
 
-	Oldest revision first
+	Oldest revision last
 */
-Util.prototype._doRevWalk = function(commit) {
-	if (!commit) {
-		return [];
-	}
-	var self = this;
-	var msgs = [];
-	msgs.push(commit);
-	if (commit.parents.length) {
-		return self.git.catFile(commit.parents[0])
-			.then(function(c) {
-				return self._doRevWalk.apply(self, [c]);
-			}).then(function(m){
-				return m.concat(msgs);
-			});
-	} else {
-		return msgs;
-	}
-};
-
 Util.prototype.revWalk = function (branch_name) { 
 	var self = this;
-	return this.git.catFile(branch_name)
-		.then(function(commit) {
-			return self._doRevWalk.apply(self, [commit]);
+	return this.git.revList(branch_name)
+		.then(function(history) { // array of commit shas
+			return Promise.map(history, function(commit) {
+				return self.git.catFile(commit);
+			});
 		});
 };
 

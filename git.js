@@ -93,7 +93,21 @@ Git.prototype.diff = function(sha1, sha2) {
 // @ref: SHA or branch/tag name ('master', 'HEAD', etc)
 Git.prototype.revList = function(ref) {
 	var self = this;
-	return self.catFile(ref);
-}
+	var history = []; // ascending list of commit shas
+	return self.catFile(ref)
+		.then(function(commit) {
+			if (commit) {
+				history.push(commit.id);
+				if (commit.parents && commit.parents.length) {
+					// recurse
+					return self.revList(commit.parents[0])
+						.then(function(more_history) {
+							return history.concat(more_history);
+						});
+				}
+			}
+			return history;
+		});
+};
 
 module.exports = Git;

@@ -30,7 +30,7 @@ describe('catFile test', function() {
 
 describe('revList test', function() {
   it('should list revision history', function(done) {
-    git.revList('master').then(function(result) {
+    git.revList('74b600444f909f52563bade5ead0eec52638260e').then(function(result) {
         console.log(result);
         done();
     });

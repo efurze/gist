@@ -30,12 +30,12 @@ describe('fileSizeHistory', function() {
     });
     it('should have accurate data for first commit', function() {
         Object.keys(first_commit).forEach(function(file) {
-            expect(history[0][file]).to.equal(first_commit[file]);
+            expect(history[7][file]).to.equal(first_commit[file]);
         });
     });
     it('should have accurate data for eighth commit', function() {
         Object.keys(first_commit).forEach(function(file) {
-            expect(history[7][file]).to.equal(eighth_commit[file]);
+            expect(history[0][file]).to.equal(eighth_commit[file]);
         });
     });
 });
