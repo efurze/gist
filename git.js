@@ -1,5 +1,5 @@
 var Promise = require('bluebird');
-var parse = require('parse-diff');
+var diff = require('./types/diff.js');
 
 
 var parseCatFile = function(data, type, sha) {
@@ -84,9 +84,13 @@ Git.prototype.catFile = function(id) {
 
 Git.prototype.diff = function(sha1, sha2) {
 	var self = this;
-	return self._git.diffAsync([sha1, sha2])
+	var args = [sha1];
+	if (sha2) {
+		args.push(sha2);
+	}
+	return self._git.diffAsync(args)
 		.then(function(diffstr) {
-			return parse(diffstr);
+			return new diff(diffstr);
 		});
 };
 

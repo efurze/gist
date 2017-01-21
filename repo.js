@@ -3,20 +3,38 @@ var fs = require('fs');
 var Promise = require('bluebird');
 var Types = require('./types.js');
 var Util = require('./git_util.js');
-var git = require('./git.js');
+var Git = require('./git.js');
+var Persist = require('./persist.js');
 
 var Repo = function(path) {
-	this._git = new git(path);
+	this._git = new Git(path);
 	this._util = new Util(this._git);
+	this._persist = new Persist();
 };
+
+Repo.prototype.buildCommitHistory = function(branch) {
+	var self = this;
+	return self.fileSizeHistory(branch) 
+		.then(function(history) {
+			return self._persist.saveFileSizeHistory(branch, history);
+		}).then(function() {
+			return self.diffHistory(branch);
+		}).then(function(history) {
+			return self._persist.saveDiffHistory(branch, history);
+		});
+};
+
 
 /*
 	returns promise that resolves to:
 	[
 		{
-			"foo.txt": 34,
-			"bar.txt": 49,
-			"foo/bar.txt": 349
+			id: <commit sha>,
+			tree: {
+				"foo.txt": 34,
+				"bar.txt": 49,
+				"foo/bar.txt": 349
+			}
 		}
 	]
 
@@ -67,11 +85,25 @@ Repo.prototype.fileSizeHistory = function(branch_name) { // eg 'master'
 };
 
 
+Repo.prototype.diffHistory = function(branch_name) { // eg 'master'
+	var self = this;
+	return self._util.revWalk(branch_name)
+		.then(function(history) { // array of commits
+			return Promise.map(history, function(commit) {
+				return self._git.diff(commit.id)
+					.then(function(diff) {
+						return diff._summary;
+					});
+			});
+		});
+};
+
 /*
 	@files = {'foo.txt': 423, 'bar/foo.txt': 43}
 */
 Repo.prototype._updateFileSizes = function(files, diff) {
 	files = Clone(files);
+	diff = diff.parse_diff();
 	diff.forEach(function(filediff) {
 		var filename = filediff.from;
 		var delta = parseInt(filediff.additions) - parseInt(filediff.deletions);

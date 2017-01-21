@@ -8,18 +8,35 @@ Promise.promisifyAll(fs);
 
 var DATA_DIR = './persist';
 
-var FILESIZE_FILE = DATA_DIR + '/filesizehistory.json';
+var FILESIZE_FILE = 'filesizehistory.json';
+var DIFF_FILE = 'diffhistory.json';
 
 var Persist = function() {
 
 };
 
-Persist.prototype.saveFileSizeHistory = function(history) {
-	return fs.writeFileAsync(FILESIZE_FILE, JSON.stringify(history));
+Persist.prototype.saveFileSizeHistory = function(branch, history) {
+	var filename = DATA_DIR + "/" + branch + "." + FILESIZE_FILE;
+	return fs.writeFileAsync(filename, JSON.stringify(history));
 };
 
-Persist.prototype.getFileSizeHistory = function() {
-	return fs.readFileAsync(FILESIZE_FILE)
+Persist.prototype.getFileSizeHistory = function(branch) {
+	var filename = DATA_DIR + "/" + branch + "." + FILESIZE_FILE;
+	return fs.readFileAsync(filename)
+		.then(function(data) {
+			return JSON.parse(data);
+		});
+};
+
+
+Persist.prototype.saveDiffHistory = function(branch, history) {
+	var filename = DATA_DIR + "/" + branch + "." + DIFF_FILE;
+	return fs.writeFileAsync(filename, JSON.stringify(history));
+};
+
+Persist.prototype.getDiffHistory = function(branch) {
+	var filename = DATA_DIR + "/" + branch + "." + DIFF_FILE;
+	return fs.readFileAsync(filename)
 		.then(function(data) {
 			return JSON.parse(data);
 		});

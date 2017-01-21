@@ -19,12 +19,46 @@ var eighth_commit = {
     'test/git.js': 29 
 };
 
+var first_diff =   { 
+    'git.js': [ '-1,8', '+1,14', '-11,80', '+17,101' ],
+    'git_util.js': [ '-0,0', '+1,114' ],
+    'package.json': [ '-12,6', '+12,14' ],
+    'persist.js': [ '-0,0', '+1,30' ],
+    'repo.js': [ '-0,0', '+1,157' ],
+    'test.js': [ '-1,15', '+1,42' ],
+    'test/git.js': [ '-0,0', '+1,39' ],
+    'test/git_util.js': [ '-0,0', '+1,17' ],
+    'test/persist.js': [ '-0,0', '+1,54' ],
+    'test/repo.js': [ '-0,0', '+1,82' ],
+    'types.js': [ '-0,0', '+1,17' ] 
+};
+
+describe('diffHistory', function() {
+    var history;
+    it('should generate diff history for 8th commit in this repo', function(done) {
+        repo.diffHistory('87de0509018493e8b76ea0853177593942e7e9d4').then(function(result) {
+            history = result;
+            //console.log(history);
+            expect(result).to.have.lengthOf(8);
+            done();
+        });
+    });
+    it('should have accurate data for first diff', function() {
+        Object.keys(first_diff).forEach(function(file) {
+            expect(history[7][file]).to.deep.equal(first_diff[file]);
+        });
+        Object.keys(history[7]).forEach(function(file) {
+            expect(history[7][file]).to.deep.equal(first_diff[file]);
+        });
+    });
+});
+
 describe('fileSizeHistory', function() {
     var history;
     it('should generate file size history for 8th commit in this repo', function(done) {
         repo.fileSizeHistory('87de0509018493e8b76ea0853177593942e7e9d4').then(function(result) {
             history = result;
-            console.log(history);
+            //console.log(history);
             expect(result).to.have.lengthOf(8);
         	done();
         });

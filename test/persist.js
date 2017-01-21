@@ -25,9 +25,9 @@ describe('saveFileSizeHistory', function() {
 	var loadedHistory;
 	it('should save and load fileSizeHistory', function(done) {
 		repo.fileSizeHistory('87de0509018493e8b76ea0853177593942e7e9d4').then(function(result) {
-			persist.saveFileSizeHistory(result)
+			persist.saveFileSizeHistory('unittest', result)
 				.then(function() {
-					return persist.getFileSizeHistory();
+					return persist.getFileSizeHistory('unittest');
 				}).then(function(result) {
 					loadedHistory = result;
 					expect(loadedHistory).to.have.lengthOf(8);

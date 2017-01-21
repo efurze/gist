@@ -6,9 +6,8 @@ var repo = require('./repo.js');
 var Repo = new repo('/Users/efurze/repos/gist');
 var simple_git = require('simple-git')('/Users/efurze/repos/gist');
 
-simple_git.catFile(["-p", "48ee4d0ec147b2a44ef8e4d20d20d2a3f9fe48ad"], function(err, data) {
-		console.log(data);
-	});
+
+Repo.buildCommitHistory('master');
 
 /*
 Repo.fileSizeHistory('master').then(function(file_lengths) {
